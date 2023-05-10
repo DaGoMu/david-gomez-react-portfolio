@@ -18,7 +18,11 @@ export default class PortfolioForm extends Component {
             url: "",
             thumb_image: "",
             banner_image: "",
-            logo: ""
+            logo: "",
+
+            editMode: false,
+            apiUrl: "https://davidgm.devcamp.space/portfolio/portfolio_items",
+            apiAction: 'post'
         };
 
         this.handleChange = this.handleChange.bind(this);
@@ -28,11 +32,66 @@ export default class PortfolioForm extends Component {
         this.handleThumbDrop = this.handleThumbDrop.bind(this);
         this.handleBannerDrop = this.handleBannerDrop.bind(this);
         this.handleLogoDrop = this.handleLogoDrop.bind(this);
+        this.deleteImage = this.deleteImage.bind(this);
 
             //  Refs
         this.thumbRef = React.createRef();
         this.bannerRef = React.createRef();
         this.logoRef = React.createRef();
+    }
+
+    deleteImage(imageType){
+        // console.log("deleteImage", imageType);
+
+        axios.delete(`https://api.devcamp.space/portfolio/delete-portfolio-image/${this.state.id}?image_type=${imageType}`, { withCredentials: true }
+        ).then(response => {
+            // console.log("deleteImage", response);
+            this.setState({
+            [`${imageType}_url`]: ""
+            });
+
+        }).catch(error => {
+            console.log("deleteImage error", error)
+        })
+    
+    }
+
+    // Comprobamos si se ha rellenado el form con el edit
+    componentDidUpdate() {
+        if (Object.keys(this.props.portfolioToEdit).length > 0 ){
+            const {
+                id,
+                name,
+                description,
+                category,
+                position,
+                url,
+                thumb_image_url,
+                banner_image_url,
+                logo_url
+            } = this.props.portfolioToEdit;
+
+            this.props.clearPortfolioToEdit();
+
+            this.setState({
+                        // Rellenamos el form con los datos provenientes del edit 
+                        // o con valores predefinidos gracias a ||
+                id: id,
+                name: name || "",
+                description: description || "",
+                category: category || "eCommerce",
+                position: position || "",
+                url: url || "",
+                thumb_image_url: thumb_image_url || "",
+                banner_image_url: banner_image_url || "",
+                logo_url: logo_url || "",
+
+                editMode: true,
+                apiUrl: `https://davidgm.devcamp.space/portfolio/portfolio_items/${id}`,
+                apiAction: 'patch'
+            })
+        }
+
     }
 
         // DROPZONE CONFIG
@@ -105,10 +164,24 @@ export default class PortfolioForm extends Component {
         // console.log("event", event)    
     // https://davidgm.devcamp.space/portfolio/portfolio_items
 
-        axios.post("https://davidgm.devcamp.space/portfolio/portfolio_items", 
-        this.buildForm(), {withCredentials: true}
-        ).then(response => {
-            this.props.handleSuccessfulFormSubmission(response.data.portfolio_item);
+        // axios.post("https://davidgm.devcamp.space/portfolio/portfolio_items", 
+        // this.buildForm(), {withCredentials: true}
+        // )
+
+        axios({
+            method: this.state.apiAction,
+            url: this.state.apiUrl,
+            data: this.buildForm(),
+            withCredentials: true
+        })
+        .then(response => {
+
+            if (this.state.editMode){
+                this.props.handleEditFormSubmission();
+            } else {
+                this.props.handleNewFormSubmission(response.data.portfolio_item);
+            }
+            
             // console.log("response", response);
 
                 // Cuando se envie el formulario correctamente, borraremos todo el contenido del mismo.
@@ -121,7 +194,10 @@ export default class PortfolioForm extends Component {
             url: "",
             thumb_image: "",
             banner_image: "",
-            logo: ""
+            logo: "",
+            editMode: false,
+            apiUrl: "https://davidgm.devcamp.space/portfolio/portfolio_items",
+            apiAction: 'post'
         });
 
                 // Refs: Iteramos por cada uno para borrar el contenido
@@ -162,6 +238,17 @@ export default class PortfolioForm extends Component {
 
                     <div className='image-uploaders'>
 
+                        {/* Vamos a comprobar si hay imagenes y esta en edit mode */}
+
+                        {this.state.thumb_image_url && this.state.editMode ?(
+                            <div className='portfolio-manager-image-wrapper'>
+                                <img src={this.state.thumb_image_url} />
+
+                                <div className='image-removal-link'>
+                                    <a onClick={() => this.deleteImage("thumb_image")}>Remove File</a>
+                                </div>
+                            </div>
+                        ) : (
                         <DropzoneComponent
                         ref={this.thumbRef}
                         config= {this.componentConfig()}
@@ -170,7 +257,17 @@ export default class PortfolioForm extends Component {
                         >
                             <div className='dz-message'>Thumbnail</div>
                         </DropzoneComponent>
+                        )}
 
+
+                        {this.state.banner_image_url && this.state.editMode ?(
+                            <div className='portfolio-manager-image-wrapper'>
+                                <img src={this.state.banner_image_url} />
+                                <div className='image-removal-link'>
+                                    <a onClick={() => this.deleteImage("banner_image")}>Remove File</a>
+                                </div>
+                            </div>
+                        ) : (
                         <DropzoneComponent
                         ref={this.bannerRef}
                         config= {this.componentConfig()}
@@ -179,7 +276,17 @@ export default class PortfolioForm extends Component {
                         >
                             <div className='dz-message'>Banner</div>
                         </DropzoneComponent>
+                        )}
 
+
+                        {this.state.logo_url && this.state.editMode ?(
+                            <div className='portfolio-manager-image-wrapper'>
+                                <img src={this.state.logo_url} />
+                                <div className='image-removal-link'>
+                                    <a onClick={() => this.deleteImage("logo")}>Remove File</a>
+                                </div>
+                            </div>
+                        ) : (
                         <DropzoneComponent
                         ref={this.logoRef}
                         config= {this.componentConfig()}
@@ -188,6 +295,8 @@ export default class PortfolioForm extends Component {
                         >
                             <div className='dz-message'>Logo</div>
                         </DropzoneComponent>
+                        )}
+
 
                         <button className='btn' type='submit'>Save</button>
                     </div>

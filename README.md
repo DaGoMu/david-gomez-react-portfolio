@@ -1,5 +1,7 @@
 # David Gómez React Portfolio Application
 
-> Provided for the students of the [Bottega Code School](https://bottega.tech/)
+> Creacion de un portfolio en React siguiendo el curso Full-Stack DevCamp
 
-*Fork from [es6-webpack2-starter](https://github.com/micooz/es6-webpack2-starter)*
+*Este proyecto está en desarrollo y sirve como guía básica para desarrollar un portfolio en React, capaz de conectarse a una API y modificar los registros.*
+
+*Este proyecto esta creado con versiones antiguas de React por lo que puede haber incompatibilidades.*
