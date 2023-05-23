@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from 'axios';
 
 import BlogItem from "../blog/blog-item"
+import BlogModal from "../modals/blog-modal"
 
 class Blog extends Component {
 constructor(){
@@ -12,18 +13,44 @@ constructor(){
         blogItems:[],
         totalCount: 0,
         currentPage: 0,
-        isLoading: true
+        isLoading: true,
+        blogModalIsOpen: false
     }
 
     this.getBlogItems = this.getBlogItems.bind(this)
     this.activateInfiniteScroll();
+
+    // Para el Modal
+    this.handleNewBlogClick = this.handleNewBlogClick.bind(this)
+    this.handleModalClose = this.handleModalClose.bind(this)
+    this.handleSuccessfulNewBlogSubmission = this.handleSuccessfulNewBlogSubmission.bind(this)
+
+}
+
+handleSuccessfulNewBlogSubmission(blog){
+    this.setState({
+        blogModalIsOpen: false,
+        blogItems: [blog].concat(this.state.blogItems)
+    })
+}
+
+handleModalClose(){
+    this.setState({
+        blogModalIsOpen: false
+    })
+}
+
+handleNewBlogClick(){
+    this.setState({
+        blogModalIsOpen: true
+    })
 }
 
         //  FUNCION DE SCROLL INFINITO
 activateInfiniteScroll() {
-    window.onscroll = () => {
+     window.onscroll = () => {
 
-        if (this.state.isLoadint || this.state.blogItems.length === this.state.totalCount) {
+        if (this.state.isLoading || this.state.blogItems.length === this.state.totalCount) {
             return;
         }
 
@@ -59,9 +86,11 @@ getBlogItems(){
     }) 
 }
 
-componentWillMount(){
+UNSAFE_componentWillMount(){
     this.getBlogItems();
 }
+
+
 
 render(){
     const blogRecords = this.state.blogItems.map(blogItem => {
@@ -70,6 +99,14 @@ render(){
 
     return (
         <div className="blog-container">
+            <BlogModal 
+            handleSuccessfulNewBlogSubmission={this.handleSuccessfulNewBlogSubmission}
+            handleModalClose= {this.handleModalClose}
+            modalIsOpen= {this.state.blogModalIsOpen}/>
+
+            <div className="new-blog-link">
+                <a onClick={this.handleNewBlogClick}>Abrir modal</a>
+            </div>
             <div className="content-container">
                 {blogRecords}
             </div> 
